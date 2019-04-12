@@ -163,7 +163,7 @@ class NeuralNetwork{
 
   for(let i=0;i<1500;i++){
     console.log(`Entrenament num ${i}:`);
-    console.log(nn.output);
+    //console.log(nn.output);
     nn.feedforward()
     nn.backprop()
   }
