@@ -11,3 +11,5 @@ To train and run the network:
 ```shell
 node neural-network.js
 ```
+
+update May 2023: implemented in pure C without dependencies
