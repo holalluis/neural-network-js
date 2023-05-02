@@ -19,9 +19,7 @@ typedef struct {
 void Matrix_print(Matrix* M){
   for(int i=0; i<M->nrows; i++){
     for(int j=0; j<M->ncols; j++){
-
       if(!j){ printf("  "); }
-
       double x = M->data[i][j];
       printf("%.2lf ",x);
     }
@@ -33,7 +31,7 @@ Matrix* Matrix_create(int nrows, int ncols){
   Matrix* M = malloc(sizeof(Matrix));
   M->nrows = nrows;
   M->ncols = ncols;
-  M->data  = malloc(nrows*sizeof(double*));
+  M->data = malloc(nrows*sizeof(double*));
   for(int i=0; i<nrows; i++){
     M->data[i] = malloc(ncols*sizeof(double));
   }
@@ -49,7 +47,6 @@ void Matrix_destroy(Matrix* M){
   free(M);
 }
 
-
 //matrix sum
 Matrix* Matrix_sum(Matrix* A, Matrix* B){
   if(A->nrows != B->nrows){ return NULL; }
@@ -64,7 +61,6 @@ Matrix* Matrix_sum(Matrix* A, Matrix* B){
       S->data[i][j] = A->data[i][j] + B->data[i][j];
     }
   }
-
   return S;
 }
 
@@ -82,7 +78,6 @@ Matrix* Matrix_sub(Matrix* A, Matrix* B){
       S->data[i][j] = A->data[i][j] - B->data[i][j];
     }
   }
-
   return S;
 }
 
@@ -97,7 +92,6 @@ Matrix* Matrix_scale(Matrix* M, double scalar){
       S->data[i][j] = scalar*M->data[i][j];
     }
   }
-
   return S;
 }
 
@@ -111,14 +105,13 @@ Matrix* Matrix_multiply(Matrix* A, Matrix* B){
   //compute AxB
   for(int i=0; i<M->nrows; i++){
     for(int j=0; j<M->ncols; j++){
-      double eij=0; //init element M[i][j]
+      double mij=0; //init element M[i][j]
       for(int k=0; k<A->ncols; k++) {
-        eij += A->data[i][k] * B->data[k][j];
+        mij += A->data[i][k] * B->data[k][j];
       }
-      M->data[i][j] = eij;
+      M->data[i][j] = mij;
     }
   }
-
   return M;
 }
 
@@ -133,7 +126,6 @@ Matrix* Matrix_transpose(Matrix* M){
       T->data[j][i] = M->data[i][j];
     }
   }
-
   return T;
 }
 
@@ -151,7 +143,6 @@ Matrix* Matrix_bwise_mul(Matrix* A, Matrix* B){
       M->data[i][j] = A->data[i][j] * B->data[i][j];
     }
   }
-
   return M;
 }
 
@@ -161,15 +152,14 @@ Matrix* Matrix_bwise_mul(Matrix* A, Matrix* B){
 //  dy/dx = x*(1-x)
 Matrix* sigmoid(Matrix* M){
   Matrix* S = Matrix_create(M->nrows, M->ncols);
-  for(int i=0;i<M->nrows;i++){
-    for(int j=0;j<M->ncols;j++){
+  for(int i=0; i<M->nrows; i++){
+    for(int j=0; j<M->ncols; j++){
       double x = M->data[i][j];
       S->data[i][j] = 1.0/(1.0+exp(-x));
     }
   }
   return S;
 }
-
 Matrix* sigmoid_derivative(Matrix* M){
   Matrix* S = Matrix_create(M->nrows, M->ncols);
   for(int i=0; i<M->nrows; i++){
@@ -185,9 +175,7 @@ Matrix* sigmoid_derivative(Matrix* M){
 typedef struct {
   Matrix* x; //input matrix
   Matrix* y; //desired output matrix
-
   int times_trained;
-
   Matrix* weights1;
   Matrix* weights2;
   Matrix* layer1;
@@ -200,6 +188,7 @@ Neural_Network* Neural_Network_create(Matrix* x, Matrix* y){
   nn->y = y;
   nn->times_trained = 0;
 
+  //init weights with random numbers between 0 and 1
   nn->weights1 = Matrix_create(x->ncols, x->nrows);
   for(int i=0; i<nn->weights1->nrows; i++){
     for(int j=0; j<nn->weights1->ncols; j++){
@@ -216,6 +205,9 @@ Neural_Network* Neural_Network_create(Matrix* x, Matrix* y){
   }
   puts("init weights2 ok");
 
+  nn->layer1 = Matrix_create(nn->x->nrows, nn->weights1->ncols);
+  puts("init layer1 ok");
+
   nn->output = Matrix_create(y->nrows, y->ncols);
   for(int i=0; i<nn->output->nrows; i++){
     for(int j=0; j<nn->output->ncols; j++){
@@ -223,9 +215,6 @@ Neural_Network* Neural_Network_create(Matrix* x, Matrix* y){
     }
   }
   puts("init output ok");
-
-  nn->layer1 = Matrix_create(nn->x->nrows, nn->weights1->ncols);
-  puts("init layer1 ok");
 
   printf("Neural network created at %p (%ld bytes)\n",nn,sizeof(Neural_Network));
 
@@ -278,11 +267,11 @@ void Neural_Network_backprop(Neural_Network* nn){
   );
 
   //update the weights with the derivative (slope) of the loss function
-  nn->weights1 = Matrix_sum(nn->weights1, d_weights1);
   nn->weights2 = Matrix_sum(nn->weights2, d_weights2);
+  nn->weights1 = Matrix_sum(nn->weights1, d_weights1);
 
-  Matrix_destroy(d_weights1);
   Matrix_destroy(d_weights2);
+  Matrix_destroy(d_weights1);
 }
 
 double Neural_Network_loss(Neural_Network* nn){
@@ -291,7 +280,7 @@ double Neural_Network_loss(Neural_Network* nn){
   for(int i=0; i<sub->nrows; i++){
     for(int j=0; j<sub->ncols; j++){
       double n = sub->data[i][j];
-      loss += powf(n,2);
+      loss += pow(n,2);
     }
   }
   Matrix_destroy(sub);
@@ -307,30 +296,32 @@ void Neural_Network_status(Neural_Network* nn){
 void Neural_Network_train(Neural_Network* nn){
   int n_iterations = 5e4; //number of training iterations
 
-  puts("Starting training");
+  puts("Training start");
+  Neural_Network_status(nn);
   for(int i=0; i<n_iterations; i++){
     Neural_Network_feedforward(nn);
     Neural_Network_backprop(nn);
     nn->times_trained++;
-    Neural_Network_status(nn);
+    if(nn->times_trained%10000==0){
+      Neural_Network_status(nn);
+    }
   }
   puts("Training ended");
 
-  puts("Desired output:");
-  Matrix_print(nn->y);
-  puts("Trained output:");
-  Matrix_print(nn->output);
+  //log x, y and trained output
+  puts("Input:");          Matrix_print(nn->x);
+  puts("Desired output:"); Matrix_print(nn->y);
+  puts("Trained output:"); Matrix_print(nn->output);
 }
 
 int main(){
-
   Matrix* x = Matrix_create(5,4);
   double xdata[5][4]={
     {0.0, 0.0, 1.0, 1.0},
     {0.0, 1.0, 1.0, 0.0},
     {1.0, 0.0, 1.0, 1.0},
     {1.0, 1.0, 1.0, 3.0},
-    {1.0, 1.0, 1.0, 5.0}
+    {1.0, 1.0, 1.0, 5.0},
   };
   for(int i=0;i<5;i++){
     for(int j=0;j<4;j++){
@@ -344,7 +335,7 @@ int main(){
     {1.0, 1.0, 0.0},
     {1.0, 0.0, 0.0},
     {0.0, 0.0, 0.0},
-    {1.0, 0.0, 0.0}
+    {1.0, 0.0, 0.0},
   };
   for(int i=0;i<5;i++){
     for(int j=0;j<3;j++){
@@ -354,7 +345,5 @@ int main(){
 
   Neural_Network* nn = Neural_Network_create(x,y);
   Neural_Network_train(nn);
-
   return 0;
 }
-
