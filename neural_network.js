@@ -222,7 +222,7 @@ class NeuralNetwork{
   }
 
   train(){
-    let n_iterations = 5e4;     //amount of training
+    let n_iterations = 5e5;     //amount of training
 
     console.log("Start training");
     for(let i=0; i<n_iterations; i++){
@@ -289,4 +289,3 @@ class NeuralNetwork{
     [0,0,1,1],
   ]);
 })();
-
