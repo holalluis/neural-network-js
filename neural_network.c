@@ -335,7 +335,7 @@ void Neural_Network_train(Neural_Network* nn){
     Neural_Network_backprop(nn);
     nn->times_trained++;
     if(nn->times_trained%10000==0){
-      printf("\033[1A"); //terminal escape
+      //printf("\033[1A"); //terminal escape
       Neural_Network_status(nn);
     }
   }
@@ -385,9 +385,5 @@ int main(){
   Neural_Network* nn = Neural_Network_create(x,y);
   Neural_Network_train(nn);
 
-  //press enter to end
-  char end;
-  puts("Press Enter to end");
-  scanf("%c",&end);
   return 0;
 }
