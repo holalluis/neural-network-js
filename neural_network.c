@@ -175,11 +175,11 @@ Matrix* sigmoid_derivative(Matrix* M){
 typedef struct {
   Matrix* x; //input matrix
   Matrix* y; //desired output matrix
-  int times_trained;
   Matrix* weights1;
   Matrix* weights2;
   Matrix* layer1;
   Matrix* output;
+  int times_trained;
 } Neural_Network;
 
 Neural_Network* Neural_Network_create(Matrix* x, Matrix* y){
@@ -234,17 +234,24 @@ void Neural_Network_print(Neural_Network* nn){
 
 void Neural_Network_feedforward(Neural_Network* nn){
   Matrix_destroy(nn->layer1);
-  nn->layer1 = sigmoid(Matrix_multiply(nn->x,      nn->weights1)); //matrix
-
   Matrix_destroy(nn->output);
-  nn->output = sigmoid(Matrix_multiply(nn->layer1, nn->weights2)); //matrix
+
+  //recalculate layer1
+  Matrix* xw1 = Matrix_multiply(nn->x, nn->weights1);
+  nn->layer1 = sigmoid(xw1); //matrix
+  Matrix_destroy(xw1);
+
+  //recalculate outputs
+  Matrix* l1w2 = Matrix_multiply(nn->layer1, nn->weights2);
+  nn->output = sigmoid(l1w2); //matrix
+  Matrix_destroy(l1w2);
 }
 
 //backprop: update weights
 void Neural_Network_backprop(Neural_Network* nn){
   //application of the chain rule to find derivative of the loss function with respect to weights2 and weights1
-  //in python: d_weights2 = np.dot(self.layer1.T, (2*(self.y - self.output) * sigmoid_derivative(self.output)))
 
+  //in python: d_weights2 = np.dot(self.layer1.T, (2*(self.y - self.output) * sigmoid_derivative(self.output)))
   //Matrix* d_weights2 = Matrix_multiply(
   //  Matrix_transpose(nn->layer1),
   //  Matrix_bwise_mul(
@@ -252,19 +259,12 @@ void Neural_Network_backprop(Neural_Network* nn){
   //    sigmoid_derivative(nn->output)
   //  )
   //);
-
-  Matrix* sub        = Matrix_sub(nn->y, nn->output);
+  Matrix* sub        = Matrix_sub(nn->y,nn->output);
   Matrix* sca        = Matrix_scale(sub,2);
   Matrix* sde        = sigmoid_derivative(nn->output);
   Matrix* bwm        = Matrix_bwise_mul(sca,sde);
   Matrix* tra        = Matrix_transpose(nn->layer1);
   Matrix* d_weights2 = Matrix_multiply(tra,bwm);
-
-  Matrix_destroy(sub);
-  Matrix_destroy(sca);
-  Matrix_destroy(sde);
-  //Matrix_destroy(bwm);
-  Matrix_destroy(tra);
 
   //in python: d_weights1 = np.dot(self.input.T,  (np.dot(2*(self.y - self.output) * sigmoid_derivative(self.output), self.weights2.T) * sigmoid_derivative(self.layer1)))
   //Matrix* d_weights1 = Matrix_multiply(
@@ -280,27 +280,30 @@ void Neural_Network_backprop(Neural_Network* nn){
   //    sigmoid_derivative(nn->layer1)
   //  )
   //);
-
-  Matrix* tra2 = Matrix_transpose(nn->weights2);
-  Matrix* mul = Matrix_multiply(bwm, tra2);
-  Matrix* sde2 = sigmoid_derivative(nn->layer1);
-
-  Matrix* bwm2 = Matrix_bwise_mul(mul, sde2);
-  Matrix* trax = Matrix_transpose(nn->x);
+  Matrix* tra2       = Matrix_transpose(nn->weights2);
+  Matrix* mul        = Matrix_multiply(bwm, tra2);
+  Matrix* sde2       = sigmoid_derivative(nn->layer1);
+  Matrix* bwm2       = Matrix_bwise_mul(mul, sde2);
+  Matrix* trax       = Matrix_transpose(nn->x);
   Matrix* d_weights1 = Matrix_multiply(trax, bwm2);
 
   //update the weights with the derivative (slope) of the loss function
   nn->weights2 = Matrix_sum(nn->weights2, d_weights2);
   nn->weights1 = Matrix_sum(nn->weights1, d_weights1);
 
-  Matrix_destroy(d_weights2);
+  //free memory
   Matrix_destroy(d_weights1);
   Matrix_destroy(trax);
   Matrix_destroy(bwm2);
-  Matrix_destroy(bwm);
   Matrix_destroy(sde2);
   Matrix_destroy(mul);
   Matrix_destroy(tra2);
+  Matrix_destroy(d_weights2);
+  Matrix_destroy(tra);
+  Matrix_destroy(bwm);
+  Matrix_destroy(sde);
+  Matrix_destroy(sca);
+  Matrix_destroy(sub);
 }
 
 double Neural_Network_loss(Neural_Network* nn){
@@ -332,6 +335,7 @@ void Neural_Network_train(Neural_Network* nn){
     Neural_Network_backprop(nn);
     nn->times_trained++;
     if(nn->times_trained%10000==0){
+      printf("\033[1A"); //terminal escape
       Neural_Network_status(nn);
     }
   }
@@ -343,31 +347,37 @@ void Neural_Network_train(Neural_Network* nn){
   puts("Trained output:"); Matrix_print(nn->output);
 }
 
+//define test input sizes
+#define X_NROWS 5
+#define X_NCOLS 4
+#define Y_NROWS 5
+#define Y_NCOLS 3
+
 int main(){
-  Matrix* x = Matrix_create(5,4);
-  double xdata[5][4]={
+  Matrix* x = Matrix_create(X_NROWS,X_NCOLS);
+  double xdata[X_NROWS][X_NCOLS]={
     {0,0,1,1},
     {0,1,1,0},
     {1,0,1,1},
     {1,1,1,3},
     {1,1,1,5},
   };
-  for(int i=0;i<5;i++){
-    for(int j=0;j<4;j++){
+  for(int i=0; i<X_NROWS; i++){
+    for(int j=0; j<X_NCOLS; j++){
       x->data[i][j] = xdata[i][j];
     }
   }
 
-  Matrix* y = Matrix_create(5,3);
-  double ydata[5][3]={
+  Matrix* y = Matrix_create(Y_NROWS,Y_NCOLS);
+  double ydata[Y_NROWS][Y_NCOLS]={
     {0,1,0},
     {1,1,0},
     {1,0,0},
     {0,0,0},
     {1,0,0},
   };
-  for(int i=0;i<5;i++){
-    for(int j=0;j<3;j++){
+  for(int i=0;i<Y_NROWS;i++){
+    for(int j=0;j<Y_NCOLS;j++){
       y->data[i][j] = ydata[i][j];
     }
   }
@@ -375,5 +385,9 @@ int main(){
   Neural_Network* nn = Neural_Network_create(x,y);
   Neural_Network_train(nn);
 
+  //press enter to end
+  char end;
+  puts("Press Enter to end");
+  scanf("%c",&end);
   return 0;
 }
