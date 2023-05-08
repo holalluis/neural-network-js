@@ -9,6 +9,11 @@
 #include<stdlib.h>
 #include<math.h>
 
+//debug TODO
+#define DEBUG_MODE 1
+int matrices_created=0;
+int matrices_destroyed=0;
+
 /*biblioteca interna per treballar amb matrius*/
 typedef struct {
   int nrows;
@@ -24,7 +29,23 @@ Matrix* Matrix_create(int nrows, int ncols){
   for(int i=0; i<nrows; i++){
     M->data[i] = malloc(ncols*sizeof(double));
   }
+
+  matrices_created++;
   return M;
+}
+
+void Matrix_destroy(Matrix* M){
+  if(M==NULL){
+    puts("warning: attempted to free a NULL matrix");
+    return;
+  }
+  for(int i=0; i<M->nrows; i++){
+    free(M->data[i]);
+  }
+  free(M->data);
+  free(M);
+
+  matrices_destroyed++;
 }
 
 void Matrix_print(Matrix* M){
@@ -36,15 +57,6 @@ void Matrix_print(Matrix* M){
     }
     printf("\n");
   }
-}
-
-void Matrix_destroy(Matrix* M){
-  if(M==NULL) return;
-  for(int i=0; i<M->nrows; i++){
-    free(M->data[i]);
-  }
-  free(M->data);
-  free(M);
 }
 
 //matrix sum
@@ -147,6 +159,7 @@ Matrix* Matrix_bwise_mul(Matrix* A, Matrix* B){
 }
 
 /*Activation function and its derivative*/
+
 //sigmoid function
 //  y     = 1/( 1+e^(-x) )
 //  dy/dx = x*(1-x)
@@ -160,6 +173,7 @@ Matrix* sigmoid(Matrix* M){
   }
   return S;
 }
+
 Matrix* sigmoid_derivative(Matrix* M){
   Matrix* S = Matrix_create(M->nrows, M->ncols);
   for(int i=0; i<M->nrows; i++){
@@ -197,6 +211,7 @@ Neural_Network* Neural_Network_create(Matrix* x, Matrix* y){
   }
   puts("init weights1 ok");
 
+  //init weights with random numbers between 0 and 1
   nn->weights2 = Matrix_create(y->nrows, y->ncols);
   for(int i=0; i<nn->weights2->nrows; i++){
     for(int j=0; j<nn->weights2->ncols; j++){
@@ -205,15 +220,12 @@ Neural_Network* Neural_Network_create(Matrix* x, Matrix* y){
   }
   puts("init weights2 ok");
 
-  nn->layer1 = Matrix_create(nn->x->nrows, nn->weights1->ncols);
+  //init layer1
+  nn->layer1 = Matrix_create(x->nrows, nn->weights1->ncols);
   puts("init layer1 ok");
 
+  //init output
   nn->output = Matrix_create(y->nrows, y->ncols);
-  for(int i=0; i<nn->output->nrows; i++){
-    for(int j=0; j<nn->output->ncols; j++){
-      nn->output->data[i][j] = 0;
-    }
-  }
   puts("init output ok");
 
   printf("Neural network created at %p (%ld bytes)\n",nn,sizeof(Neural_Network));
@@ -222,34 +234,40 @@ Neural_Network* Neural_Network_create(Matrix* x, Matrix* y){
 }
 
 void Neural_Network_print(Neural_Network* nn){
-  puts("nn->x:");
-  Matrix_print(nn->x);
-  puts("nn->y:");
-  Matrix_print(nn->y);
-  puts("nn->weights1:");
-  Matrix_print(nn->weights1);
-  puts("nn->weights2:");
-  Matrix_print(nn->weights2);
+  puts("nn->x:");        Matrix_print(nn->x);
+  puts("nn->y:");        Matrix_print(nn->y);
+  puts("nn->weights1:"); Matrix_print(nn->weights1);
+  puts("nn->weights2:"); Matrix_print(nn->weights2);
+}
+
+void Neural_Network_destroy(Neural_Network* nn){
+  Matrix_destroy(nn->x);
+  Matrix_destroy(nn->y);
+  Matrix_destroy(nn->weights1);
+  Matrix_destroy(nn->weights2);
+  Matrix_destroy(nn->layer1);
+  Matrix_destroy(nn->output);
+  free(nn);
 }
 
 void Neural_Network_feedforward(Neural_Network* nn){
-  Matrix_destroy(nn->layer1);
-  Matrix_destroy(nn->output);
-
   //recalculate layer1
+  Matrix_destroy(nn->layer1);
   Matrix* xw1 = Matrix_multiply(nn->x, nn->weights1);
-  nn->layer1 = sigmoid(xw1); //matrix
+  nn->layer1 = sigmoid(xw1);
   Matrix_destroy(xw1);
 
   //recalculate outputs
+  Matrix_destroy(nn->output);
   Matrix* l1w2 = Matrix_multiply(nn->layer1, nn->weights2);
-  nn->output = sigmoid(l1w2); //matrix
+  nn->output = sigmoid(l1w2);
   Matrix_destroy(l1w2);
 }
 
 //backprop: update weights
 void Neural_Network_backprop(Neural_Network* nn){
-  //application of the chain rule to find derivative of the loss function with respect to weights2 and weights1
+  //application of the chain rule to find derivative of the loss function with
+  //respect to weights2 and weights1
 
   //in python: d_weights2 = np.dot(self.layer1.T, (2*(self.y - self.output) * sigmoid_derivative(self.output)))
   //Matrix* d_weights2 = Matrix_multiply(
@@ -288,8 +306,13 @@ void Neural_Network_backprop(Neural_Network* nn){
   Matrix* d_weights1 = Matrix_multiply(trax, bwm2);
 
   //update the weights with the derivative (slope) of the loss function
-  nn->weights2 = Matrix_sum(nn->weights2, d_weights2);
-  nn->weights1 = Matrix_sum(nn->weights1, d_weights1);
+  Matrix* weights2 = Matrix_sum(nn->weights2, d_weights2);
+  Matrix_destroy(nn->weights2);
+  nn->weights2 = weights2;
+
+  Matrix* weights1 = Matrix_sum(nn->weights1, d_weights1);
+  Matrix_destroy(nn->weights1);
+  nn->weights1 = weights1;
 
   //free memory
   Matrix_destroy(d_weights1);
@@ -298,6 +321,7 @@ void Neural_Network_backprop(Neural_Network* nn){
   Matrix_destroy(sde2);
   Matrix_destroy(mul);
   Matrix_destroy(tra2);
+
   Matrix_destroy(d_weights2);
   Matrix_destroy(tra);
   Matrix_destroy(bwm);
@@ -326,7 +350,7 @@ void Neural_Network_status(Neural_Network* nn){
 }
 
 void Neural_Network_train(Neural_Network* nn){
-  int n_iterations = 5e5; //number of training iterations
+  int n_iterations = 5e3; //number of training iterations
 
   puts("Training start");
   Neural_Network_status(nn);
@@ -335,7 +359,7 @@ void Neural_Network_train(Neural_Network* nn){
     Neural_Network_backprop(nn);
     nn->times_trained++;
     if(nn->times_trained%10000==0){
-      //printf("\033[1A"); //terminal escape
+      printf("\033[1A"); //terminal escape
       Neural_Network_status(nn);
     }
   }
@@ -347,7 +371,7 @@ void Neural_Network_train(Neural_Network* nn){
   puts("Trained output:"); Matrix_print(nn->output);
 }
 
-//define test input sizes
+//define numeric example: x and y sizes
 #define X_NROWS 5
 #define X_NCOLS 4
 #define Y_NROWS 5
@@ -384,6 +408,15 @@ int main(){
 
   Neural_Network* nn = Neural_Network_create(x,y);
   Neural_Network_train(nn);
+  Neural_Network_destroy(nn);
+
+  //debug info
+  printf("Matrices created:   %d\n",matrices_created);
+  printf("Matrices destroyed: %d\n",matrices_destroyed);
+
+  //press Enter to end
+  //puts("Press Enter to end");
+  //getc(stdin);
 
   return 0;
 }
