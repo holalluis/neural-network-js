@@ -1,4 +1,4 @@
-# Simple neural network in javascript
+# Simple neural network in Javascript and C
 
 status: under development
 
