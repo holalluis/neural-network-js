@@ -32,7 +32,7 @@ optim:
 status:
 	git diff --stat
 
-push:
+push: clean
 	git add *
 	git commit -m update
 	git push

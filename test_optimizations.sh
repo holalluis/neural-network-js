@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#compile
+#compile O0 O1 O2 O3 and Os
 make optim
 
 #see sizes
