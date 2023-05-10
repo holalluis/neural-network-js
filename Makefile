@@ -34,7 +34,7 @@ status:
 
 push:
 	git add *
-	git commit
+	git commit -m update
 	git push
 
 clean:
