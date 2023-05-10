@@ -9,10 +9,11 @@
 #include<stdlib.h>
 #include<math.h>
 
-//debug TODO
-#define DEBUG_MODE 1
-int matrices_created=0;
-int matrices_destroyed=0;
+//debug object
+struct {
+  int matrices_created;
+  int matrices_destroyed;
+} debug_obj;
 
 /*biblioteca interna per treballar amb matrius*/
 typedef struct {
@@ -30,7 +31,7 @@ Matrix* Matrix_create(int nrows, int ncols){
     M->data[i] = malloc(ncols*sizeof(double));
   }
 
-  matrices_created++;
+  debug_obj.matrices_created++;
   return M;
 }
 
@@ -45,7 +46,7 @@ void Matrix_destroy(Matrix* M){
   free(M->data);
   free(M);
 
-  matrices_destroyed++;
+  debug_obj.matrices_destroyed++;
 }
 
 void Matrix_print(Matrix* M){
@@ -350,7 +351,8 @@ void Neural_Network_status(Neural_Network* nn){
 }
 
 void Neural_Network_train(Neural_Network* nn){
-  int n_iterations = 5e3; //number of training iterations
+  int n_iterations        = 5e5; //number of training iterations
+  int n_iterations_report = 1e3; //report every x iterations
 
   puts("Training start");
   Neural_Network_status(nn);
@@ -358,7 +360,7 @@ void Neural_Network_train(Neural_Network* nn){
     Neural_Network_feedforward(nn);
     Neural_Network_backprop(nn);
     nn->times_trained++;
-    if(nn->times_trained%10000==0){
+    if(nn->times_trained%n_iterations_report==0){
       printf("\033[1A"); //terminal escape
       Neural_Network_status(nn);
     }
@@ -378,6 +380,9 @@ void Neural_Network_train(Neural_Network* nn){
 #define Y_NCOLS 3
 
 int main(){
+  debug_obj.matrices_created=0;
+  debug_obj.matrices_destroyed=0;
+
   Matrix* x = Matrix_create(X_NROWS,X_NCOLS);
   double xdata[X_NROWS][X_NCOLS]={
     {0,0,1,1},
@@ -411,8 +416,8 @@ int main(){
   Neural_Network_destroy(nn);
 
   //debug info
-  printf("Matrices created:   %d\n",matrices_created);
-  printf("Matrices destroyed: %d\n",matrices_destroyed);
+  printf("Matrices created:   %d\n",debug_obj.matrices_created);
+  printf("Matrices destroyed: %d\n",debug_obj.matrices_destroyed);
 
   //press Enter to end
   //puts("Press Enter to end");

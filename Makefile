@@ -1,17 +1,23 @@
-default:
-	gcc neural_network.c -lm -Wall
+nn: nn.c
+	gcc -Wall nn.c -O3 -lm -o nn
 
-run:
-	make
-	./a.out
+run: nn
+	./nn
 
-debug:
-	gcc neural_network.c -lm -Wall -g
-	gdb ./a.out
+debug: nn.c
+	gcc -Wall nn.c -lm -g -o nn
+	gdb nn
 
-wasm:
+wasm: nn.c
 	#emcc neural_network.c -sALLOW_MEMORY_GROWTH
-	emcc neural_network.c
+	emcc nn.c
+
+optim:
+	gcc -Wall nn.c -O0 -lm -o O0
+	gcc -Wall nn.c -O1 -lm -o O1
+	gcc -Wall nn.c -O2 -lm -o O2
+	gcc -Wall nn.c -O3 -lm -o O3
+	gcc -Wall nn.c -Os -lm -o Os
 
 clean:
-	rm a.out*
+	rm -f nn a.out* O*
