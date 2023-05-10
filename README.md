@@ -20,6 +20,7 @@ make run
 - make run: compile and run
 - make debug: compile with -g flag to debug the executable using `gdb`
 - make wasm: compile using `emcc` compiler
+- make push: for development
 - make optim: run different optimizations. Intended to use with the file `test_optimizations.sh`:
 ```shell
   bash test_optimizations.sh
