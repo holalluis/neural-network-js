@@ -350,10 +350,10 @@ void Neural_Network_status(Neural_Network* nn){
   printf("[status] Times trained: %d. Current loss: %.10lf\n",times_trained,loss);
 }
 
-#define TRAIN_ITERATIONS        1e7
-#define TRAIN_ITERATIONS_REPORT 1e5
+#define TRAIN_ITERATIONS        1e6
+#define TRAIN_ITERATIONS_REPORT 1e4
 void Neural_Network_train(Neural_Network* nn){
-  puts("Training start");
+  printf("Training start: will do %d iterations\n",(int)TRAIN_ITERATIONS);
   Neural_Network_status(nn);
   for(int i=0; i<TRAIN_ITERATIONS; i++){
     Neural_Network_feedforward(nn);
@@ -367,9 +367,9 @@ void Neural_Network_train(Neural_Network* nn){
   puts("Training ended");
 
   //log x, y and trained output
-  puts("Input:");          Matrix_print(nn->x);
-  puts("Desired output:"); Matrix_print(nn->y);
-  puts("Trained output:"); Matrix_print(nn->output);
+  puts("Input (x):");          Matrix_print(nn->x);
+  puts("Desired output (y):"); Matrix_print(nn->y);
+  puts("Trained output:");     Matrix_print(nn->output);
 }
 
 //define numeric example: x and y sizes
