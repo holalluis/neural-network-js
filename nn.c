@@ -9,7 +9,7 @@
 #include<stdlib.h>
 #include<math.h>
 
-//debug object
+//debug object to store debug info
 struct {
   int matrices_created;
   int matrices_destroyed;
@@ -19,7 +19,7 @@ struct {
 typedef struct{
   int nrows;
   int ncols;
-  double** data; //"array of pointers"
+  double** data;
 } Matrix;
 
 Matrix* Matrix_create(int nrows, int ncols){
@@ -350,17 +350,16 @@ void Neural_Network_status(Neural_Network* nn){
   printf("[status] Times trained: %d. Current loss: %.10lf\n",times_trained,loss);
 }
 
+#define TRAIN_ITERATIONS        1e7
+#define TRAIN_ITERATIONS_REPORT 1e5
 void Neural_Network_train(Neural_Network* nn){
-  int n_iterations        = 1e7; //number of training iterations
-  int n_iterations_report = 1e5; //report every x iterations
-
   puts("Training start");
   Neural_Network_status(nn);
-  for(int i=0; i<n_iterations; i++){
+  for(int i=0; i<TRAIN_ITERATIONS; i++){
     Neural_Network_feedforward(nn);
     Neural_Network_backprop(nn);
     nn->times_trained++;
-    if(nn->times_trained%n_iterations_report==0){
+    if(nn->times_trained%((int)TRAIN_ITERATIONS_REPORT)==0){
       printf("\033[1A"); //terminal escape
       Neural_Network_status(nn);
     }
@@ -416,8 +415,8 @@ int main(){
   Neural_Network_destroy(nn);
 
   //debug info
-  printf("Matrices created:   %d\n",debug_obj.matrices_created);
-  printf("Matrices destroyed: %d\n",debug_obj.matrices_destroyed);
+  printf("[debug info] Matrices created:   %d\n",debug_obj.matrices_created);
+  printf("[debug info] Matrices destroyed: %d\n",debug_obj.matrices_destroyed);
 
   //press Enter to end
   //puts("Press Enter to end");
