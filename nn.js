@@ -229,7 +229,7 @@ class NeuralNetwork{
       this.feedforward();
       this.backprop();
 
-      if(i%10000==0){
+      if(i%1000==0){
         this.status();
       }
 

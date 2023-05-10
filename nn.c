@@ -16,7 +16,7 @@ struct {
 } debug_obj;
 
 /*biblioteca interna per treballar amb matrius*/
-typedef struct {
+typedef struct{
   int nrows;
   int ncols;
   double** data; //"array of pointers"
@@ -351,8 +351,8 @@ void Neural_Network_status(Neural_Network* nn){
 }
 
 void Neural_Network_train(Neural_Network* nn){
-  int n_iterations        = 5e5; //number of training iterations
-  int n_iterations_report = 1e3; //report every x iterations
+  int n_iterations        = 1e7; //number of training iterations
+  int n_iterations_report = 1e5; //report every x iterations
 
   puts("Training start");
   Neural_Network_status(nn);
