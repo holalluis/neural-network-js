@@ -210,7 +210,7 @@ Neural_Network* Neural_Network_create(Matrix* x, Matrix* y){
       nn->weights1->data[i][j] = ((double)rand())/RAND_MAX;
     }
   }
-  puts("init weights1 ok");
+  //puts("init weights1 ok");
 
   //init weights with random numbers between 0 and 1
   nn->weights2 = Matrix_create(y->nrows, y->ncols);
@@ -219,15 +219,15 @@ Neural_Network* Neural_Network_create(Matrix* x, Matrix* y){
       nn->weights2->data[i][j] = ((double)rand())/RAND_MAX;
     }
   }
-  puts("init weights2 ok");
+  //puts("init weights2 ok");
 
   //init layer1
   nn->layer1 = Matrix_create(x->nrows, nn->weights1->ncols);
-  puts("init layer1 ok");
+  //puts("init layer1 ok");
 
   //init output
   nn->output = Matrix_create(y->nrows, y->ncols);
-  puts("init output ok");
+  //puts("init output ok");
 
   printf("Neural network created at %p (%ld bytes)\n",nn,sizeof(Neural_Network));
 
@@ -332,6 +332,8 @@ void Neural_Network_backprop(Neural_Network* nn){
 }
 
 double Neural_Network_loss(Neural_Network* nn){
+  if(nn->output==NULL) return 99999;
+
   double loss=0;
   Matrix* sub = Matrix_sub(nn->y, nn->output);
   for(int i=0; i<sub->nrows; i++){
