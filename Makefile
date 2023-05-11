@@ -3,7 +3,7 @@ CC     = gcc
 OPTIM  = -O2
 CFLAGS = -Wall -Wextra
 
-# make "recipes"
+# make recipes
 # "target": "dependencies"
 #   "actions"
 

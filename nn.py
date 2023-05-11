@@ -4,9 +4,10 @@ def sigmoid_derivative(x): return x*(1.0-x)
 class NeuralNetwork:
   def __init__(self, x, y):
     self.input      = x
-    self.weights1   = np.random.rand(self.input.shape[1],4)
-    self.weights2   = np.random.rand(4,1)
     self.y          = y
+
+    self.weights1   = np.random.rand(self.input.shape[1], self.input.shape[0])
+    self.weights2   = np.random.rand(self.y.shape[0],self.y.shape[1])
     self.output     = np.zeros(self.y.shape)
   def feedforward(self):
     self.layer1 = sigmoid(np.dot(self.input, self.weights1))
@@ -20,13 +21,20 @@ class NeuralNetwork:
     self.weights2 += d_weights2
 
 if __name__ == "__main__":
-  X = np.array([
-    [0,0,1],
-    [0,1,1],
-    [1,0,1],
-    [1,1,1]
+  X = np.array([ #5x4
+    [0,0,1,1],
+    [0,1,1,0],
+    [1,0,1,1],
+    [1,1,1,3],
+    [1,1,1,5],
   ])
-  y  = np.array([[0],[1],[1],[0]])
+  y = np.array([
+    [0,1,0],
+    [1,1,0],
+    [1,0,0],
+    [0,0,0],
+    [1,0,0],
+  ])
   nn = NeuralNetwork(X,y)
-  for i in range(1500): nn.feedforward(); nn.backprop();
+  for i in range(1000000): nn.feedforward(); nn.backprop();
   print(nn.output)

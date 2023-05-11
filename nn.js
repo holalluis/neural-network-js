@@ -222,14 +222,15 @@ class NeuralNetwork{
   }
 
   train(){
-    let n_iterations = 5e5;     //amount of training
+    let TRAIN_ITERATIONS        = 1e6;
+    let TRAIN_ITERATIONS_REPORT = 1e4;
 
     console.log("Start training");
-    for(let i=0; i<n_iterations; i++){
+    for(let i=0; i<TRAIN_ITERATIONS; i++){
       this.feedforward();
       this.backprop();
 
-      if(i%1000==0){
+      if(i%TRAIN_ITERATIONS_REPORT==0){
         this.status();
       }
 
@@ -281,6 +282,7 @@ class NeuralNetwork{
   nn.train();
 
   //model is trained: use the NN to predict new case
+  /*
   nn.predict([
     [1,1,1,3],
     [0,0,0,0],
@@ -288,4 +290,5 @@ class NeuralNetwork{
     [0,0,0,0],
     [0,0,1,1],
   ]);
+  */
 })();
