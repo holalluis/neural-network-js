@@ -7,17 +7,17 @@
 #   - C compiled to JS (wasm)
 
 #python
-echo "python nn.py"
-time python nn.py >/dev/null
+echo "python3 nn.py"
+time python3 nn.py #>/dev/null
 
 #javascript
 echo "node nn.js"
-time node nn.js >/dev/null
+time node nn.js #>/dev/null
 
 #C compiled to JS (wasm)
 make wasm
 echo "node a.out.js"
-time node a.out.js >/dev/null
+time node a.out.js #>/dev/null
 
 #C
 make

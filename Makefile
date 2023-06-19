@@ -1,6 +1,6 @@
 # make variables
 CC     = gcc
-OPTIM  = -O2
+OPTIM  = -O3
 CFLAGS = -Wall -Wextra
 
 # make recipes

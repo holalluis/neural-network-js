@@ -9,11 +9,16 @@
 #include<stdlib.h>
 #include<math.h>
 
-//debug object to store debug info
-struct {
-  int matrices_created;
-  int matrices_destroyed;
-} debug_obj;
+//enable or disable debug mode
+//#define DEBUGMODE 1
+
+//auxiliar debug object to store debug info
+#ifdef DEBUGMODE
+  struct {
+    int matrices_created;
+    int matrices_destroyed;
+  } debug_obj;
+#endif
 
 /*biblioteca interna per treballar amb matrius*/
 typedef struct{
@@ -26,12 +31,15 @@ Matrix* Matrix_create(int nrows, int ncols){
   Matrix* M = malloc(sizeof(Matrix));
   M->nrows = nrows;
   M->ncols = ncols;
-  M->data = malloc(nrows*sizeof(double*));
+  M->data = calloc(nrows,sizeof(double*)); //equivalent to malloc(nrows*sizeof(double*)) but safer
   for(int i=0; i<nrows; i++){
-    M->data[i] = malloc(ncols*sizeof(double));
+    M->data[i] = calloc(ncols,sizeof(double));
   }
 
-  debug_obj.matrices_created++;
+  #ifdef DEBUGMODE
+    debug_obj.matrices_created++;
+  #endif
+
   return M;
 }
 
@@ -46,7 +54,9 @@ void Matrix_destroy(Matrix* M){
   free(M->data);
   free(M);
 
-  debug_obj.matrices_destroyed++;
+  #ifdef DEBUGMODE
+    debug_obj.matrices_destroyed++;
+  #endif
 }
 
 void Matrix_print(Matrix* M){
@@ -372,6 +382,10 @@ void Neural_Network_train(Neural_Network* nn){
   puts("Input (x):");          Matrix_print(nn->x);
   puts("Desired output (y):"); Matrix_print(nn->y);
   puts("Trained output:");     Matrix_print(nn->output);
+
+  //see weights
+  puts("weights1:"); Matrix_print(nn->weights1);
+  puts("weights2:"); Matrix_print(nn->weights2);
 }
 
 //define numeric example: x and y sizes
@@ -381,8 +395,10 @@ void Neural_Network_train(Neural_Network* nn){
 #define Y_NCOLS 3
 
 int main(){
-  debug_obj.matrices_created=0;
-  debug_obj.matrices_destroyed=0;
+  #ifdef DEBUGMODE
+    debug_obj.matrices_created   = 0;
+    debug_obj.matrices_destroyed = 0;
+  #endif
 
   Matrix* x = Matrix_create(X_NROWS,X_NCOLS);
   double xdata[X_NROWS][X_NCOLS]={
@@ -416,9 +432,11 @@ int main(){
   Neural_Network_train(nn);
   Neural_Network_destroy(nn);
 
-  //debug info
-  printf("[debug info] Matrices created:   %d\n",debug_obj.matrices_created);
-  printf("[debug info] Matrices destroyed: %d\n",debug_obj.matrices_destroyed);
+  #ifdef DEBUGMODE
+    //debug info
+    printf("[debug info] Matrices created:   %d\n",debug_obj.matrices_created);
+    printf("[debug info] Matrices destroyed: %d\n",debug_obj.matrices_destroyed);
+  #endif
 
   //press Enter to end
   //puts("Press Enter to end");

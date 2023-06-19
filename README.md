@@ -18,7 +18,7 @@ compile the file `nn.c` and run it with:
 make run
 ```
 
-## list of make commands
+## make commands
 - make: just compile `nn.c`
 - make run: compile and run
 - make debug: compile with `-g` flag to debug the executable using `gdb`
