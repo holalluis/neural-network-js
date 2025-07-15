@@ -402,11 +402,11 @@ int main(){
 
   Matrix* x = Matrix_create(X_NROWS,X_NCOLS);
   double xdata[X_NROWS][X_NCOLS]={
-    {0,0,1,1},
-    {0,1,1,0},
-    {1,0,1,1},
-    {1,1,1,3},
-    {1,1,1,5},
+    {0,0,1,1}, //imatge 1
+    {0,1,1,0}, //imatge 2
+    {1,0,1,1}, //imatge 3
+    {1,1,1,3}, //imatge 4
+    {1,1,1,5}, //imatge 5
   };
   for(int i=0; i<X_NROWS; i++){
     for(int j=0; j<X_NCOLS; j++){
@@ -416,11 +416,12 @@ int main(){
 
   Matrix* y = Matrix_create(Y_NROWS,Y_NCOLS);
   double ydata[Y_NROWS][Y_NCOLS]={
-    {0,1,0},
-    {1,1,0},
-    {1,0,0},
-    {0,0,0},
-    {1,0,0},
+    //c1 , c2 , c3
+    {0   , 1  , 0} ,
+    {1   , 1  , 0} ,
+    {1   , 0  , 0} ,
+    {0   , 0  , 0} ,
+    {1   , 0  , 0} ,
   };
   for(int i=0;i<Y_NROWS;i++){
     for(int j=0;j<Y_NCOLS;j++){
